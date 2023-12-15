@@ -1,0 +1,93 @@
+import 'dart:convert';
+
+import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+
+
+class Student {
+  final String name;
+  final String college;
+
+  const Student({required this.name, required this.college});
+
+  factory Student.fromJson(Map<String, dynamic> json) => Student(
+        name: json['name'],
+        college: json['college'],
+      );
+
+  // Map<String, dynamic> toJson() => {
+  //       'name': name,
+  //       'college': college,
+  //     };
+}
+
+class Home extends StatefulWidget {
+  const Home({super.key});
+
+  @override
+  State<Home> createState() => _HomeState();
+}
+
+class _HomeState extends State<Home> {
+  //declare an empty array for store instance of jSON class
+  List<Student> students = [];
+
+  Future<List<Student>> getJson() async {
+
+      final response = await http.get(Uri.parse(
+          "https://simeoncse55.github.io/Example_Json_Data/jsondata.json"));
+      var data = jsonDecode(response.body.toString());
+
+      // check if the response request was successful or not
+      if (response.statusCode == 200) {
+        List<Student> _students = List<Student>.from(
+          data['students'].map(
+            (e) => Student.fromJson(e),
+          ),
+        );
+
+        return _students;
+      } else {
+        return students;
+      }
+
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Fetching Datas from Api '),
+      ),
+      body: Column(
+        children: [
+          
+          Expanded(
+              child: FutureBuilder(
+            future: getJson(),
+            builder: (context, AsyncSnapshot<List<Student>> snapshot) {
+              return ListView.builder(
+                  itemCount: students.length,
+                  itemBuilder: (context, index) {
+                    return ListTile(
+                      title: Text(snapshot.data![index].name),
+                      subtitle: Text(snapshot.data![index].college),
+                    );
+                  });
+            },
+          ))
+        ],
+      ),
+    );
+  }
+}
+
+// class for json
+//
+// class Json {
+//   String name;
+//
+//   String college;
+//
+//   Json({required this.name, required this.college});
+// }
